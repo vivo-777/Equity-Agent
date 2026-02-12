@@ -28,38 +28,32 @@ def fetch_market_data(ticker: str) -> Dict[str, Any]:
     Returns a dictionary with summary metrics AND the raw history dataframe.
     """
     try:
-        # Clean ticker input
+
         ticker = ticker.upper().strip()
         stock = yf.Ticker(ticker)
-        
-        # 1. Fetch Info (Metadata & Fundamentals)
+
         try:
             info = stock.info
         except:
             info = {}
 
-        # 2. Fetch History (Needed for Volatility & Technicals)
         hist = stock.history(period="6mo")
         
         if hist.empty:
             return {"error": f"No price data available for ticker: {ticker}"}
-            
-        # 3. Calculate Derived Metrics
+
         current_price = hist['Close'].iloc[-1]
-        
-        # Volatility (30-day rolling std dev of percent change)
+
         if len(hist) >= 30:
             volatility = hist['Close'].pct_change().rolling(window=30).std().iloc[-1] * 100
         else:
             volatility = 0.0
-        
-        # 4. Construct the Payload
+
         market_data = {
             "ticker": ticker,
             "current_price": round(current_price, 2),
             "volatility_30d": round(volatility, 2) if pd.notnull(volatility) else "N/A",
-            
-            # --- FUNDAMENTAL METRICS ---
+
             "market_cap": format_market_cap(info.get('marketCap')),
             
             "pe_ratio": round(info.get('trailingPE', 0), 2) if info.get('trailingPE') else 'N/A',
@@ -72,7 +66,6 @@ def fetch_market_data(ticker: str) -> Dict[str, Any]:
             "free_cash_flow": format_market_cap(info.get('freeCashflow')),
             "return_on_equity": f"{round(info.get('returnOnEquity', 0) * 100, 2)}%" if info.get('returnOnEquity') else 'N/A',
             
-            # HIDDEN FIELD: The raw dataframe for the Technical Analysis Node
             "history_df": hist 
         }
         
