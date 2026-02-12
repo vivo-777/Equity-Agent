@@ -1,12 +1,12 @@
 import os
-from langchain_groq import ChatGroq # type: ignore
+from langchain_groq import ChatGroq 
 from langchain_core.messages import SystemMessage, HumanMessage
 from src.agents.state import AgentState
 
 llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
     model="llama-3.3-70b-versatile",
-    temperature=0.0 # Strict and analytical
+    temperature=0.0 
 )
 
 def risk_manager_node(state: AgentState):
@@ -20,8 +20,7 @@ def risk_manager_node(state: AgentState):
     technicals = state["technicals"]
     prices = state["market_data"]
     
-    # 1. Construct Context
-    # We explicitly highlight the technical signals to ensure the LLM checks them
+
     tech_signal = technicals.get('overall_signal', {}).get('signal', 'Unknown')
     rsi = technicals.get('momentum', {}).get('rsi', {}).get('value', 'N/A')
     
@@ -42,11 +41,10 @@ def risk_manager_node(state: AgentState):
     human_message = f"""Here is the Analyst's Draft:\n\n{draft}\n\n
     Market Data:\nPrice: {prices.get('current_price')}\nRSI: {rsi}\nOverall Tech Signal: {tech_signal}"""
     
-    # 2. Call LLM
+
     response = llm.invoke([SystemMessage(content=system_prompt), HumanMessage(content=human_message)])
     result = response.content
-    
-    # 3. Parse Output
+
     decision = "APPROVE"
     feedback = "LGTM"
     
