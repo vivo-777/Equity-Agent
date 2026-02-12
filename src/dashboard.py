@@ -13,7 +13,7 @@ except ImportError:
 
 # --- 1. CONFIGURATION ---
 st.set_page_config(page_title="Equity Research", layout="wide")
-st.title("🤖 AI Equity Research Agent ")
+st.title("🤖 AI Equity Research Agent")
 
 # --- 2. SIDEBAR ---
 with st.sidebar:
@@ -50,16 +50,11 @@ if run_btn:
             col2.metric("Current Price", f"${current_price}")
             col3.metric("Analyst Decision", signal)
 
-            # --- 6. PLOTLY CHART (RESTORED) ---
+            # --- 6. PLOTLY CHART ---
             st.subheader(f"{ticker} Price Action (6 Months)")
             
-            # We need to access the history dataframe. 
-            # Note: In the tool, we stored it as 'history_df'. 
-            # LangGraph might serialize it, so we check if it exists.
             if "history_df" in market_data and not market_data["history_df"].empty:
                 df = market_data["history_df"]
-                
-                # Create Candlestick Chart
                 fig = go.Figure(data=[go.Candlestick(
                     x=df.index,
                     open=df['Open'],
@@ -67,7 +62,6 @@ if run_btn:
                     low=df['Low'],
                     close=df['Close']
                 )])
-                
                 fig.update_layout(
                     xaxis_rangeslider_visible=False,
                     template="plotly_dark",
@@ -86,11 +80,10 @@ if run_btn:
             
             with tab2:
                 st.subheader("Financial Metrics")
-                # Create a readable table for metrics
                 metrics_df = pd.DataFrame([
                     {"Metric": k, "Value": v} 
                     for k, v in market_data.items() 
-                    if k != "history_df" # Don't show the raw dataframe in the table
+                    if k != "history_df"
                 ])
                 st.table(metrics_df)
                 
@@ -107,4 +100,8 @@ if run_btn:
                     st.success("Risk Manager approved the report immediately.")
                     
                 st.subheader("Technical Indicators")
-                st.error(f"An unexpected error occurred: {e}")
+                st.json(technicals)
+
+        except Exception as e:
+            # THIS IS WHERE THE ERROR LOGGING BELONGS
+            st.error(f"An unexpected error occurred: {str(e)}")
