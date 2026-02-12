@@ -3,7 +3,7 @@ from langchain_groq import ChatGroq # type: ignore
 from langchain_core.messages import SystemMessage, HumanMessage
 from src.agents.state import AgentState
 
-# Initialize LLM
+
 llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
     model="llama-3.3-70b-versatile",
@@ -22,7 +22,7 @@ def analyst_node(state: AgentState):
     
     print(f"--- ANALYST ANALYZING: {ticker} ---")
     
-    # 1. Construct the Context (NOW INCLUDES THE DEEP DATA)
+  
     context = f"""
     TICKER: {ticker}
     
@@ -43,14 +43,13 @@ def analyst_node(state: AgentState):
     --- RECENT NEWS ---
     """
     
-    # Add news content (This fixes "Unknown Sources")
+
     if isinstance(news, list):
         for i, article in enumerate(news[:5]):
             title = article.get('title', 'No Title')
             url = article.get('url', 'No URL')
             context += f"\nArticle {i+1}: {title}\nSource: {url}\n"
-    
-    # 2. Define the Prompt (THE "HEDGE FUND" PERSONA)
+
     system_prompt = """You are a veteran Hedge Fund Portfolio Manager.
     
     ### INSTRUCTIONS:
@@ -61,8 +60,7 @@ def analyst_node(state: AgentState):
     """
 
     human_message = f"Here is the latest data for {ticker}. Write the analysis.\n\nData Context:\n{context}"
-    
-    # 3. Call the LLM
+
     messages = [SystemMessage(content=system_prompt), HumanMessage(content=human_message)]
     response = llm.invoke(messages)
     
