@@ -41,6 +41,7 @@ if run_btn:
             analyst_draft = final_state.get("analyst_draft", "No report generated.")
             critique = final_state.get("critique")
             
+            # --- 5. DISPLAY METRICS ---
             col1, col2, col3 = st.columns(3)
             current_price = market_data.get("current_price", "N/A")
             signal = technicals.get('overall_signal', {}).get('signal', 'Neutral')
@@ -49,10 +50,13 @@ if run_btn:
             col2.metric("Current Price", f"${current_price}")
             col3.metric("Analyst Decision", signal)
 
+            # --- 6. PLOTLY CHART (Optimized) ---
             st.subheader(f"{ticker} Price Action (6 Months)")
             
-            if "history_df" in market_data and not market_data["history_df"].empty:
-                df = market_data["history_df"]
+            # Use .get() safely and check if it's a DataFrame
+            df = market_data.get("history_df")
+            
+            if isinstance(df, pd.DataFrame) and not df.empty:
                 fig = go.Figure(data=[go.Candlestick(
                     x=df.index,
                     open=df['Open'],
@@ -63,12 +67,15 @@ if run_btn:
                 fig.update_layout(
                     xaxis_rangeslider_visible=False,
                     template="plotly_dark",
-                    height=500
+                    height=500,
+                    margin=dict(l=0, r=0, t=0, b=0)
                 )
                 st.plotly_chart(fig, use_container_width=True)
             else:
-                st.warning("Price history data not available for charting.")
+                st.warning("⚠️ Price history data not available for charting.")
+                st.info("💡 Check if 'history_df' is being correctly passed in your AgentState.")
 
+            # --- 7. TABS FOR DETAILS ---
             tab1, tab2, tab3 = st.tabs(["📝 Research Report", "📊 Fundamental Data", "🧠 Agent Logic"])
             
             with tab1:
@@ -77,12 +84,13 @@ if run_btn:
             
             with tab2:
                 st.subheader("Financial Metrics")
-                metrics_df = pd.DataFrame([
-                    {"Metric": k, "Value": v} 
-                    for k, v in market_data.items() 
-                    if k != "history_df"
-                ])
-                st.table(metrics_df)
+                metrics_list = []
+                for k, v in market_data.items():
+                    if k != "history_df": # Skip the raw dataframe
+                        metrics_list.append({"Metric": k.replace("_", " ").title(), "Value": v})
+                
+                if metrics_list:
+                    st.table(pd.DataFrame(metrics_list))
                 
                 st.subheader("Recent News")
                 if news:
@@ -94,10 +102,12 @@ if run_btn:
                 if critique:
                     st.warning(f"Risk Manager Feedback:\n\n{critique}")
                 else:
-                    st.success("Risk Manager approved the report immediately.")
+                    st.success("✅ Risk Manager approved the report immediately.")
                     
                 st.subheader("Technical Indicators")
                 st.json(technicals)
 
         except Exception as e:
-            st.error(f"An unexpected error occurred: {str(e)}")
+            st.error(f"❌ An unexpected error occurred: {str(e)}")
+            # Helpful for debugging in your terminal
+            print(f"DEBUG: Internal Error during analysis: {e}")
