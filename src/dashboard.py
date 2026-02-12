@@ -71,9 +71,6 @@ if run_btn:
                     margin=dict(l=0, r=0, t=0, b=0)
                 )
                 st.plotly_chart(fig, use_container_width=True)
-            else:
-                st.warning("⚠️ Price history data not available for charting.")
-                st.info("💡 Check if 'history_df' is being correctly passed in your AgentState.")
 
             # --- 7. TABS FOR DETAILS ---
             tab1, tab2, tab3 = st.tabs(["📝 Research Report", "📊 Fundamental Data", "🧠 Agent Logic"])
