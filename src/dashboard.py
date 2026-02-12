@@ -107,4 +107,4 @@ if run_btn:
                     st.success("Risk Manager approved the report immediately.")
                     
                 st.subheader("Technical Indicators")
-                st.
+                st.error(f"An unexpected error occurred: {e}")
